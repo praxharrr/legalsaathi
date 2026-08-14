@@ -32,6 +32,7 @@ Style:
 - Under 250 words excluding the FORUM line.
 - Ask for the state if the answer depends on it.
 - For criminal matters, domestic violence, or large fraud, say plainly this needs a lawyer, and mention free District Legal Services Authority aid.
+- Never write your own disclaimer line; the interface already shows one.
 - Never claim to replace a lawyer.`;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -55,6 +56,25 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Please sign in to ask." },
       { status: 401 },
+    );
+  }
+
+  // ---- RATE LIMIT: 20 questions per hour ----
+  const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+  const { count } = await supabase
+    .from("messages")
+    .select("id", { count: "exact", head: true })
+    .eq("role", "user")
+    .gte("created_at", hourAgo);
+
+  if ((count ?? 0) >= 20) {
+    return NextResponse.json(
+      {
+        error:
+          "You have reached the hourly limit. Please try again in a little while.",
+      },
+      { status: 429 },
     );
   }
 
@@ -103,13 +123,6 @@ export async function POST(request: Request) {
           )
           .join("\n\n---\n\n")
       : "(No matching sections found in the available statutes.)";
-
-    console.log(
-      "Context length:",
-      context.length,
-      "| chunks:",
-      retrieved.length,
-    );
 
     // ---- SAVE + ANSWER ----
     let convoId = conversationId;
