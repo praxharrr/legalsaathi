@@ -37,13 +37,44 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Please sign in to ask.' }, { status: 401 })
   }
 
-  const { messages } = (await request.json()) as { messages: ChatMessage[] }
+  const { messages, conversationId } = (await request.json()) as {
+    messages: ChatMessage[]
+    conversationId?: string
+  }
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: 'No question provided.' }, { status: 400 })
   }
 
+  const latest = messages[messages.length - 1]
+
   try {
+    let convoId = conversationId
+
+    if (!convoId) {
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert({ user_id: user.id, title: latest.content.slice(0, 60) })
+        .select('id')
+        .single()
+
+      if (error) {
+        console.error('CONVERSATION INSERT FAILED:', error)
+      } else {
+        convoId = data.id
+        console.log('Created conversation:', convoId)
+      }
+    }
+
+    if (convoId) {
+      const { error: userMsgError } = await supabase.from('messages').insert({
+        conversation_id: convoId,
+        role: 'user',
+        content: latest.content,
+      })
+      if (userMsgError) console.error('USER MESSAGE INSERT FAILED:', userMsgError)
+    }
+
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
       config: {
@@ -56,9 +87,25 @@ export async function POST(request: Request) {
       })),
     })
 
-    return NextResponse.json({ text: response.text })
+    const text = response.text ?? ''
+
+    if (convoId) {
+      const { error: aiMsgError } = await supabase.from('messages').insert({
+        conversation_id: convoId,
+        role: 'assistant',
+        content: text,
+      })
+      if (aiMsgError) console.error('AI MESSAGE INSERT FAILED:', aiMsgError)
+
+      await supabase
+        .from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', convoId)
+    }
+
+    return NextResponse.json({ text, conversationId: convoId })
   } catch (err) {
-    console.error('Gemini error:', err)
+    console.error('Ask error:', err)
     return NextResponse.json(
       { error: 'Something went wrong. Please try again.' },
       { status: 500 }

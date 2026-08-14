@@ -17,6 +17,7 @@ export default function Chat({ email }: { email: string }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [convoId, setConvoId] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export default function Chat({ email }: { email: string }) {
       const res = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next, conversationId: convoId }),
       })
       const data = await res.json()
 
@@ -46,6 +47,7 @@ export default function Chat({ email }: { email: string }) {
         return
       }
       setMessages([...next, { role: 'assistant', content: data.text }])
+      if (data.conversationId) setConvoId(data.conversationId)
     } catch {
       setError('Could not reach the server. Check your connection.')
     } finally {
