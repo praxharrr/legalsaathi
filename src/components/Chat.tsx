@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import SignOutButton from '@/components/SignOutButton'
 
 type Msg = { role: 'user' | 'assistant'; content: string }
 
@@ -94,6 +95,7 @@ export default function Chat({
             <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute">
               {email}
             </span>
+            <SignOutButton />
           </div>
         </div>
         <p className="bg-brass/10 border-t border-brass/25 text-[11.5px] text-ink-soft text-center py-1.5 px-6">

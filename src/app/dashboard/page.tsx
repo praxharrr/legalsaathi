@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import SignOutButton from '@/components/SignOutButton'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -25,12 +26,15 @@ export default async function DashboardPage() {
               Legal<em className="italic text-tape">Saathi</em>
             </span>
           </Link>
-          <Link
-            href="/ask"
-            className="bg-ink text-paper rounded-[2px] px-4 py-2 text-[14px] font-medium hover:bg-tape transition-colors"
-          >
-            New case
-          </Link>
+          <div className="flex items-center gap-5">
+            <SignOutButton />
+            <Link
+              href="/ask"
+              className="bg-ink text-paper rounded-[2px] px-4 py-2 text-[14px] font-medium hover:bg-tape transition-colors"
+            >
+              New case
+            </Link>
+          </div>
         </div>
       </header>
 
