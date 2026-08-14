@@ -16,10 +16,12 @@ export default function Chat({
   email,
   initialMessages = [],
   initialConvoId = null,
+  initialQuestion = '',
 }: {
   email: string
   initialMessages?: Msg[]
   initialConvoId?: string | null
+  initialQuestion?: string
 }) {
   const [messages, setMessages] = useState<Msg[]>(initialMessages)
   const [input, setInput] = useState('')
@@ -27,10 +29,19 @@ export default function Chat({
   const [error, setError] = useState('')
   const [convoId, setConvoId] = useState<string | null>(initialConvoId)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const sentInitial = useRef(false)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
+
+  useEffect(() => {
+    if (initialQuestion && !sentInitial.current) {
+      sentInitial.current = true
+      send(initialQuestion)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuestion])
 
   async function send(text: string) {
     const trimmed = text.trim()
@@ -91,7 +102,7 @@ export default function Chat({
       </header>
 
       <main className="flex-1 w-full max-w-[760px] mx-auto px-6 pt-10 pb-40">
-        {messages.length === 0 && (
+        {messages.length === 0 && !loading && (
           <div className="mt-10">
             <p className="font-mono text-[11px] tracking-[0.13em] uppercase text-tape mb-4">
               § Ask Saathi
