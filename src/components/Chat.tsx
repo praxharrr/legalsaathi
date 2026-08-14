@@ -12,12 +12,20 @@ const STARTERS = [
   'Police refused to file my FIR',
 ]
 
-export default function Chat({ email }: { email: string }) {
-  const [messages, setMessages] = useState<Msg[]>([])
+export default function Chat({
+  email,
+  initialMessages = [],
+  initialConvoId = null,
+}: {
+  email: string
+  initialMessages?: Msg[]
+  initialConvoId?: string | null
+}) {
+  const [messages, setMessages] = useState<Msg[]>(initialMessages)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [convoId, setConvoId] = useState<string | null>(null)
+  const [convoId, setConvoId] = useState<string | null>(initialConvoId)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -65,9 +73,17 @@ export default function Chat({ email }: { email: string }) {
               Legal<em className="italic text-tape">Saathi</em>
             </span>
           </Link>
-          <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute">
-            {email}
-          </span>
+          <div className="flex items-center gap-5">
+            <Link
+              href="/dashboard"
+              className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-soft hover:text-tape transition-colors"
+            >
+              Your cases
+            </Link>
+            <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute">
+              {email}
+            </span>
+          </div>
         </div>
         <p className="bg-brass/10 border-t border-brass/25 text-[11.5px] text-ink-soft text-center py-1.5 px-6">
           Legal information, not legal advice. For anything serious, speak to a lawyer.
