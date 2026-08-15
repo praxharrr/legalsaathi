@@ -1,0 +1,45 @@
+[
+  {
+    "id": "consumer-refund-defective",
+    "question": "A shop refused to refund a defective phone. What can I do?",
+    "expectDomains": ["consumer"],
+    "expectSections": ["CPA 2019 s.35", "CPA 2019 s.83"],
+    "expectForum": "District Consumer"
+  },
+  {
+    "id": "rti-police-copy",
+    "question": "How do I file an RTI to get a copy of my police complaint?",
+    "expectDomains": ["rti"],
+    "expectSections": ["RTI 2005"],
+    "expectForum": "Public Information Officer"
+  },
+  {
+    "id": "upi-scam",
+    "question": "I sent money on UPI to someone who turned out to be a scammer",
+    "expectDomains": ["cyber", "criminal"],
+    "expectSections": ["IT Act 2000"],
+    "expectForum": "Cyber"
+  },
+  {
+    "id": "employment-bond",
+    "question": "My company wants me to sign a two-year employment bond. Is that enforceable?",
+    "expectDomains": ["contract"],
+    "expectSections": ["Contract Act 1872"],
+    "expectForum": "Civil Court"
+  },
+  {
+    "id": "deposit-withheld",
+    "question": "My landlord kept my security deposit and won't give it back",
+    "expectDomains": ["property", "contract"],
+    "expectSections": [],
+    "expectMustSay": "state",
+    "expectForum": "Rent"
+  },
+  {
+    "id": "fir-refused",
+    "question": "The police are refusing to register my FIR for a theft",
+    "expectDomains": ["police"],
+    "expectSections": ["BNSS 2023"],
+    "expectForum": "Superintendent of Police"
+  }
+]
