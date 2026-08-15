@@ -45,8 +45,62 @@ type Chunk = {
   section_title: string;
   chunk_text: string;
   source_name: string;
+  domain: string;
   similarity: number;
 };
+
+const DOMAINS = [
+  "consumer",
+  "criminal",
+  "police",
+  "cyber",
+  "contract",
+  "rti",
+  "property",
+] as const;
+
+const ROUTER_PROMPT = `You route Indian legal questions to the right bodies of law.
+
+Available domains:
+- consumer — defective goods, refunds, services, e-commerce, product liability
+- criminal — offences: cheating, fraud, theft, assault, harassment, criminal breach of trust
+- police — FIR, arrest, investigation, bail, summons, court procedure, getting records from police
+- cyber — online fraud, UPI scams, hacking, data theft, electronic records, digital evidence
+- contract — agreements, bonds, breach, employment terms, rental agreements as contracts
+- rti — right to information, getting records from any government body, PIO, public authority
+- property — sale, lease, mortgage, transfer of immovable property, landlord-tenant under central law
+
+Return ONLY a JSON array of 1-3 domain strings, most relevant first. No prose, no markdown.
+
+Examples:
+"shop won't refund my broken phone" -> ["consumer"]
+"how do I get a copy of my FIR through RTI" -> ["rti","police"]
+"someone scammed me on UPI" -> ["cyber","criminal"]
+"my employer's 2-year bond, is it valid" -> ["contract"]
+"landlord kept my deposit" -> ["property","contract"]`;
+
+async function routeQuestion(question: string): Promise<string[] | null> {
+  try {
+    const res = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      config: { systemInstruction: ROUTER_PROMPT, maxOutputTokens: 100 },
+      contents: [{ role: "user", parts: [{ text: question }] }],
+    });
+
+    const raw = (res.text ?? "").replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) return null;
+
+    const valid = parsed.filter((d: string) =>
+      (DOMAINS as readonly string[]).includes(d),
+    );
+
+    return valid.length > 0 ? valid : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -95,19 +149,26 @@ export async function POST(request: Request) {
   const latest = messages[messages.length - 1];
 
   try {
-    // ---- RETRIEVE ----
-    const emb = await ai.models.embedContent({
-      model: "gemini-embedding-001",
-      contents: latest.content,
-      config: { outputDimensionality: 768 },
-    });
+    // ---- ROUTE + RETRIEVE ----
+    const [emb, domains] = await Promise.all([
+      ai.models.embedContent({
+        model: "gemini-embedding-001",
+        contents: latest.content,
+        config: { outputDimensionality: 768 },
+      }),
+      routeQuestion(latest.content),
+    ]);
+
+    console.log("Routed to:", domains ?? "all domains");
+
     const queryVector = emb.embeddings?.[0]?.values ?? [];
 
     const { data: chunks, error: matchError } = await supabase.rpc(
-      "match_legal_chunks",
+      "match_legal_chunks_routed",
       {
         query_embedding: queryVector,
         query_text: latest.content,
+        domains,
         match_count: 6,
       },
     );
@@ -154,7 +215,7 @@ export async function POST(request: Request) {
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-2.5-flash",
       config: {
         systemInstruction: `${SYSTEM_PROMPT}\n\n=== RETRIEVED SECTIONS ===\n\n${context}`,
         maxOutputTokens: 2000,

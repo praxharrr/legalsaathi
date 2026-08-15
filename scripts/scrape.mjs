@@ -3,22 +3,16 @@ import fs from "node:fs/promises";
 // Add acts here as you collect their IDs
 const ACTS = [
   {
-    shortName: 'IT Act 2000',
-    name: 'Information Technology Act, 2000',
-    year: 2000,
-    actId: 'AC_CEN_45_76_00001_200021_1517807324077',
+    shortName: 'RTI 2005',
+    name: 'Right to Information Act, 2005',
+    year: 2005,
+    actId: 'AC_CEN_26_36_00004_200522_1517807322955',
   },
   {
-    shortName: 'Contract Act 1872',
-    name: 'Indian Contract Act, 1872',
-    year: 1872,
-    actId: 'AC_CEN_3_20_00035_187209_1523268996428',
-  },
-  {
-    shortName: 'BNS 2023',
-    name: 'Bharatiya Nyaya Sanhita, 2023',
-    year: 2023,
-    actId: 'AC_CEN_5_23_00048_2023-45_1719292564123',
+    shortName: 'TP Act 1882',
+    name: 'Transfer of Property Act, 1882',
+    year: 1882,
+    actId: 'AC_CEN_3_20_00042_188204_1523272233671',
   },
 ]
 
