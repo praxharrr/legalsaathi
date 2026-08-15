@@ -22,7 +22,7 @@ export default function HomeAsk() {
 
   return (
     <div>
-      <div className="flex gap-2 items-end bg-raised border border-ink rounded-[3px] pl-4 pr-1.5 py-1.5 max-w-[512px] shadow-[4px_5px_0_rgba(21,24,28,0.08)] focus-within:shadow-[5px_6px_0_var(--color-tape)] focus-within:-translate-x-px focus-within:-translate-y-px transition-all">
+      <div className="flex gap-2 items-end bg-raised border border-ink rounded-[3px] pl-4 pr-1.5 py-1.5 w-full max-w-[512px] shadow-[4px_5px_0_rgba(21,24,28,0.08)] focus-within:shadow-[5px_6px_0_var(--color-tape)] focus-within:-translate-x-px focus-within:-translate-y-px transition-all"></div><div className="flex gap-2 items-end bg-raised border border-ink rounded-[3px] pl-4 pr-1.5 py-1.5 w-full max-w-[512px] shadow-[4px_5px_0_rgba(21,24,28,0.08)] focus-within:shadow-[5px_6px_0_var(--color-tape)] focus-within:-translate-x-px focus-within:-translate-y-px transition-all">
         <textarea
           rows={1}
           value={value}
@@ -33,7 +33,7 @@ export default function HomeAsk() {
               go(value)
             }
           }}
-          placeholder="My landlord won't return my ₹40,000 deposit…"
+          placeholder="My landlord won't return my deposit…"
           className="flex-1 bg-transparent outline-none resize-none py-3 text-[15px] max-h-[118px]"
         />
         <button
@@ -45,7 +45,7 @@ export default function HomeAsk() {
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2 mt-3.5 max-w-[512px]">
+      <div className="flex flex-wrap gap-2 mt-3.5 w-full max-w-[512px]">
         {CHIPS.map((c) => (
           <button
             key={c}

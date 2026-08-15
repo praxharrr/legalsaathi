@@ -92,14 +92,14 @@ export default function Chat({
   return (
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-50 bg-paper/85 backdrop-blur border-b border-rule">
-        <div className="max-w-[760px] mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
+        <div className="max-w-[760px] mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2.5 shrink-0">
             <span className="w-5 h-5 rounded-full border-[1.5px] border-tape" />
             <span className="font-serif text-xl">
               Legal<em className="italic text-tape">Saathi</em>
             </span>
           </Link>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3.5 sm:gap-5 shrink-0">
             <Link
               href="/help"
               className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-soft hover:text-tape transition-colors"
@@ -112,7 +112,7 @@ export default function Chat({
             >
               Your cases
             </Link>
-            <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute">
+            <span className="hidden lg:inline font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute max-w-[180px] truncate">
               {email}
             </span>
             <SignOutButton />
@@ -127,7 +127,7 @@ export default function Chat({
         </p>
       </header>
 
-      <main className="flex-1 w-full max-w-[760px] mx-auto px-6 pt-10 pb-40">
+      <main className="flex-1 w-full max-w-[760px] mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-40">
         {messages.length === 0 && !loading && (
           <div className="mt-10">
             <p className="font-mono text-[11px] tracking-[0.13em] uppercase text-tape mb-4">
@@ -188,7 +188,7 @@ export default function Chat({
         <div ref={bottomRef} />
       </main>
 
-      <div className="fixed bottom-0 inset-x-0 bg-gradient-to-t from-paper via-paper to-transparent pt-10 pb-6 px-6">
+      <div className="fixed bottom-0 inset-x-0 bg-gradient-to-t from-paper via-paper to-transparent pt-10 pb-5 sm:pb-6 px-4 sm:px-6">
         <div className="max-w-[760px] mx-auto">
           <div className="flex gap-2 items-end bg-raised border border-ink rounded-[3px] pl-4 pr-1.5 py-1.5 shadow-[4px_5px_0_rgba(21,24,28,0.08)] focus-within:shadow-[5px_6px_0_var(--color-tape)] transition-shadow">
             <textarea

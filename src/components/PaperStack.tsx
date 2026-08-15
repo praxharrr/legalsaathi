@@ -14,7 +14,7 @@ export default function PaperStack() {
 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 120)
-    camera.position.set(0, 0, 9.2)
+    camera.position.set(0, 0, window.innerWidth < 640 ? 12.5 : 9.2)
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -115,6 +115,11 @@ export default function PaperStack() {
       mesh.userData = { by: -i * 0.3, bz: -i * 0.72 }
       sheets.push(mesh)
       group.add(mesh)
+    }
+
+    if (window.innerWidth < 640) {
+      group.position.x = -0.5
+      group.position.y = 0.2
     }
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.7))

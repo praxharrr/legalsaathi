@@ -54,7 +54,7 @@ export default function Home() {
       </nav>
 
       {/* hero */}
-      <section className="max-w-[1180px] mx-auto px-8 pt-16 pb-24">
+      <section className="max-w-[1180px] mx-auto px-5 sm:px-8 pt-10 sm:pt-16 pb-16 sm:pb-24">
         <div className="grid lg:grid-cols-[1.04fr_0.96fr] gap-10 items-center">
           <div>
             <p className="font-mono text-[11px] tracking-[0.13em] uppercase text-tape flex items-center gap-3 mb-6">
@@ -69,7 +69,7 @@ export default function Home() {
               <em className="italic text-tape">not knowing.</em>
             </h1>
 
-            <p className="text-[16.5px] text-ink-soft max-w-[452px] leading-[1.7] mb-3">
+            <p className="text-[15.5px] sm:text-[16.5px] text-ink-soft w-full max-w-[452px] leading-[1.7] mb-3">
               Describe what happened in plain words. Get the law that applies, what
               you&apos;re owed, and the exact next move — with the statute it came
               from, so you can check it yourself.
@@ -82,7 +82,7 @@ export default function Home() {
             <HomeAsk />
           </div>
 
-          <div className="h-[420px] lg:h-[500px] order-first lg:order-last relative">
+          <div className="h-[260px] sm:h-[380px] lg:h-[500px] order-first lg:order-last relative w-full overflow-hidden">
             <PaperStack />
             <p className="absolute bottom-0 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-[0.12em] uppercase text-ink-mute opacity-65">
               drag to rotate
@@ -94,7 +94,7 @@ export default function Home() {
       {/* how */}
       <section id="how" className="border-t border-rule relative">
         <span className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-tape opacity-25" />
-        <div className="max-w-[1180px] mx-auto px-8 py-24 relative">
+        <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-14 sm:py-24 relative">
           <div className="flex items-baseline gap-5 mb-13">
             <span className="font-mono text-[12px] text-tape pt-2 shrink-0">§ 01</span>
             <div>
@@ -158,8 +158,8 @@ export default function Home() {
 
       {/* trust */}
       <section className="border-t border-rule">
-        <div className="max-w-[1180px] mx-auto px-8 py-24">
-          <div className="bg-ink text-paper rounded-[3px] px-12 py-13 grid md:grid-cols-[1fr_auto] gap-10 items-center">
+        <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-14 sm:py-24">
+          <div className="bg-ink text-paper rounded-[3px] px-7 sm:px-12 py-8 sm:py-13 grid md:grid-cols-[1fr_auto] gap-8 md:gap-10 items-center">
             <div>
               <h3 className="font-serif text-[30px] leading-[1.16] mb-3">
                 Saathi is a companion,<br />
@@ -180,7 +180,7 @@ export default function Home() {
 
       {/* footer */}
       <footer className="border-t border-rule">
-        <div className="max-w-[1180px] mx-auto px-8 pt-14 pb-10">
+        <div className="max-w-[1180px] mx-auto px-5 sm:px-8 pt-12 sm:pt-14 pb-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-9 mb-11">
             <div>
               <div className="flex items-center gap-2.5 mb-3.5">
