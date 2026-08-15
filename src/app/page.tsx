@@ -42,6 +42,7 @@ export default function Home() {
           <div className="hidden md:flex gap-8">
             <a href="#how" className="text-[14px] text-ink-soft hover:text-ink transition-colors">How it works</a>
             <a href="#areas" className="text-[14px] text-ink-soft hover:text-ink transition-colors">Coverage</a>
+            <Link href="/help" className="text-[14px] text-ink-soft hover:text-ink transition-colors">Find help</Link>
           </div>
           <Link
             href="/login"
@@ -196,6 +197,7 @@ export default function Home() {
               <h5 className="font-mono text-[10.5px] tracking-[0.11em] uppercase text-ink-mute mb-4">Product</h5>
               <Link href="/ask" className="block text-[14px] text-ink-soft mb-2 hover:text-tape transition-colors">Ask Saathi</Link>
               <Link href="/dashboard" className="block text-[14px] text-ink-soft mb-2 hover:text-tape transition-colors">Your cases</Link>
+              <Link href="/help" className="block text-[14px] text-ink-soft mb-2 hover:text-tape transition-colors">Find help</Link>
             </div>
             <div>
               <h5 className="font-mono text-[10.5px] tracking-[0.11em] uppercase text-ink-mute mb-4">Account</h5>

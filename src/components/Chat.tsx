@@ -101,6 +101,12 @@ export default function Chat({
           </Link>
           <div className="flex items-center gap-5">
             <Link
+              href="/help"
+              className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-soft hover:text-tape transition-colors"
+            >
+              Find help
+            </Link>
+            <Link
               href="/dashboard"
               className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-soft hover:text-tape transition-colors"
             >
