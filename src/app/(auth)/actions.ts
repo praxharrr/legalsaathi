@@ -41,7 +41,8 @@ export async function signup(
 
   if (error) return { error: error.message };
 
-  return { message: "Check your email for a confirmation link." };
+  revalidatePath("/", "layout");
+  redirect("/ask");
 }
 export async function signOut() {
   const supabase = await createClient();
