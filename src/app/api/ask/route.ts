@@ -124,6 +124,13 @@ export async function POST(request: Request) {
           .join("\n\n---\n\n")
       : "(No matching sections found in the available statutes.)";
 
+    const sources = retrieved.map((c) => ({
+      section: `${c.source_name} s.${c.section_number}`,
+      title: c.section_title,
+      text: c.chunk_text.slice(0, 1200),
+      similarity: Math.round(c.similarity * 100),
+    }));
+
     // ---- SAVE + ANSWER ----
     let convoId = conversationId;
 
@@ -163,6 +170,7 @@ export async function POST(request: Request) {
         conversation_id: convoId,
         role: "assistant",
         content: text,
+        sources,
       });
       await supabase
         .from("conversations")
@@ -173,11 +181,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       text,
       conversationId: convoId,
-      sources: retrieved.map((c) => ({
-        section: `${c.source_name} s.${c.section_number}`,
-        title: c.section_title,
-        similarity: Math.round(c.similarity * 100),
-      })),
+      sources,
     });
   } catch (err) {
     console.error("Ask error:", err);

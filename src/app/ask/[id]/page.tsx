@@ -2,6 +2,19 @@ import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Chat from '@/components/Chat'
 
+type Source = {
+  section: string
+  title: string
+  text: string
+  similarity: number
+}
+
+type StoredMsg = {
+  role: 'user' | 'assistant'
+  content: string
+  sources?: Source[]
+}
+
 export default async function ConversationPage({
   params,
 }: {
@@ -23,14 +36,14 @@ export default async function ConversationPage({
 
   const { data: messages } = await supabase
     .from('messages')
-    .select('role, content')
+    .select('role, content, sources')
     .eq('conversation_id', id)
     .order('created_at', { ascending: true })
 
   return (
     <Chat
       email={user.email ?? ''}
-      initialMessages={(messages ?? []) as { role: 'user' | 'assistant'; content: string }[]}
+      initialMessages={(messages ?? []) as StoredMsg[]}
       initialConvoId={id}
     />
   )

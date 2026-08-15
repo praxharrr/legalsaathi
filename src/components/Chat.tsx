@@ -4,7 +4,18 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import SignOutButton from '@/components/SignOutButton'
 
-type Msg = { role: 'user' | 'assistant'; content: string }
+type Source = {
+  section: string
+  title: string
+  text: string
+  similarity: number
+}
+
+type Msg = {
+  role: 'user' | 'assistant'
+  content: string
+  sources?: Source[]
+}
 
 const STARTERS = [
   'My landlord won\'t return my ₹40,000 deposit',
@@ -66,7 +77,10 @@ export default function Chat({
         setError(data.error ?? 'Something went wrong.')
         return
       }
-      setMessages([...next, { role: 'assistant', content: data.text }])
+      setMessages([
+        ...next,
+        { role: 'assistant', content: data.text, sources: data.sources },
+      ])
       if (data.conversationId) setConvoId(data.conversationId)
     } catch {
       setError('Could not reach the server. Check your connection.')
@@ -139,7 +153,7 @@ export default function Chat({
                 </div>
               </div>
             ) : (
-              <Answer key={i} text={m.content} />
+              <Answer key={i} text={m.content} sources={m.sources} />
             )
           )}
 
@@ -194,7 +208,9 @@ export default function Chat({
   )
 }
 
-function Answer({ text }: { text: string }) {
+function Answer({ text, sources = [] }: { text: string; sources?: Source[] }) {
+  const [open, setOpen] = useState(false)
+
   const lines = text.split('\n')
   const forumLine = lines.find((l) => l.startsWith('FORUM|'))
   const body = lines.filter((l) => !l.startsWith('FORUM|'))
@@ -239,6 +255,42 @@ function Answer({ text }: { text: string }) {
           <p className="text-[13.5px] text-ink-soft">
             {forumLine.split('|')[2]?.trim()}
           </p>
+        </div>
+      )}
+
+      {sources.length > 0 && (
+        <div className="mt-5">
+          <button
+            onClick={() => setOpen(!open)}
+            className="font-mono text-[10px] tracking-[0.11em] uppercase text-ink-mute hover:text-tape transition-colors flex items-center gap-2"
+          >
+            <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>›</span>
+            {open ? 'Hide' : 'Show'} the {sources.length} sections this drew on
+          </button>
+
+          {open && (
+            <div className="mt-3 flex flex-col gap-2">
+              {sources.map((s, i) => (
+                <details
+                  key={i}
+                  className="group border-l-2 border-rule hover:border-tape transition-colors pl-4 py-1"
+                >
+                  <summary className="cursor-pointer list-none flex items-baseline justify-between gap-4">
+                    <span>
+                      <span className="font-mono text-[11px] text-tape">{s.section}</span>
+                      <span className="text-[13.5px] text-ink-soft ml-2">{s.title}</span>
+                    </span>
+                    <span className="font-mono text-[10px] text-ink-mute shrink-0">
+                      {s.similarity}%
+                    </span>
+                  </summary>
+                  <p className="mt-2.5 text-[13px] leading-[1.7] text-ink-soft whitespace-pre-wrap bg-raised border border-rule rounded-[2px] px-3.5 py-3">
+                    {s.text}
+                  </p>
+                </details>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
