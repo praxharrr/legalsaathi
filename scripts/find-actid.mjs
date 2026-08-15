@@ -1,5 +1,6 @@
 const HANDLES = [
-  { name: 'Bharatiya Nyaya Sanhita, 2023', handle: '123456789/20062' },
+  { name: 'Right to Information Act, 2005', handle: '123456789/2065' },
+  { name: 'Transfer of Property Act, 1882', handle: '123456789/2338' },
 ]
 
 for (const h of HANDLES) {
