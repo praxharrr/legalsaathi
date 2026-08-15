@@ -204,8 +204,8 @@ export default function Home() {
             </div>
             <div>
               <h5 className="font-mono text-[10.5px] tracking-[0.11em] uppercase text-ink-mute mb-4">Legal</h5>
-              <span className="block text-[14px] text-ink-mute mb-2">Disclaimer</span>
-              <span className="block text-[14px] text-ink-mute mb-2">Privacy</span>
+              <Link href="/disclaimer" className="block text-[14px] text-ink-soft mb-2 hover:text-tape transition-colors">Disclaimer</Link>
+              <Link href="/privacy" className="block text-[14px] text-ink-soft mb-2 hover:text-tape transition-colors">Privacy</Link>
             </div>
           </div>
           <div className="border-t border-rule pt-5 flex flex-wrap justify-between gap-5 text-[12.5px] text-ink-mute">

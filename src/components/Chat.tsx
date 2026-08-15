@@ -113,7 +113,11 @@ export default function Chat({
           </div>
         </div>
         <p className="bg-brass/10 border-t border-brass/25 text-[11.5px] text-ink-soft text-center py-1.5 px-6">
-          Legal information, not legal advice. For anything serious, speak to a lawyer.
+          Legal information, not legal advice.{' '}
+          <Link href="/disclaimer" className="underline decoration-brass/50 underline-offset-2 hover:text-tape transition-colors">
+            Read the limits
+          </Link>
+          .
         </p>
       </header>
 
