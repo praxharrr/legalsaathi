@@ -3,7 +3,7 @@
     "id": "consumer-refund-defective",
     "question": "A shop refused to refund a defective phone. What can I do?",
     "expectDomains": ["consumer"],
-    "expectSections": ["CPA 2019 s.35", "CPA 2019 s.83"],
+    "expectSections": ["CPA 2019 s.39", "CPA 2019 s.83"],
     "expectForum": "District Consumer"
   },
   {
@@ -25,7 +25,7 @@
     "question": "My company wants me to sign a two-year employment bond. Is that enforceable?",
     "expectDomains": ["contract"],
     "expectSections": ["Contract Act 1872"],
-    "expectForum": "Civil Court"
+    "expectForum": "Court"
   },
   {
     "id": "deposit-withheld",

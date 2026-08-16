@@ -70,7 +70,7 @@ for (const c of cases) {
     failures.push({ id: c.id, reason: err.message })
   }
 
-  await new Promise((r) => setTimeout(r, 2500))
+  await new Promise((r) => setTimeout(r, 30000))
 }
 
 console.log(`\n${passed}/${cases.length} passed\n`)

@@ -82,7 +82,7 @@ Examples:
 async function routeQuestion(question: string): Promise<string[] | null> {
   try {
     const res = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       config: { systemInstruction: ROUTER_PROMPT, maxOutputTokens: 100 },
       contents: [{ role: "user", parts: [{ text: question }] }],
     });
@@ -97,7 +97,8 @@ async function routeQuestion(question: string): Promise<string[] | null> {
     );
 
     return valid.length > 0 ? valid : null;
-  } catch {
+  } catch (err) {
+    console.error("Router failed, falling back to all domains:", err);
     return null;
   }
 }
@@ -215,7 +216,7 @@ export async function POST(request: Request) {
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       config: {
         systemInstruction: `${SYSTEM_PROMPT}\n\n=== RETRIEVED SECTIONS ===\n\n${context}`,
         maxOutputTokens: 2000,
