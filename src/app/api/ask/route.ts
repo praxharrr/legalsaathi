@@ -1,10 +1,8 @@
-import { GoogleGenAI } from "@google/genai";
 import Groq from "groq-sdk";
 import { createClient } from "@/lib/supabase/server";
+import { embed } from "@/lib/embed";
 import { NextResponse } from "next/server";
 
-// Gemini stays for embeddings only, until those move local
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const SYSTEM_PROMPT = `You are LegalSaathi, helping ordinary people in India understand their legal rights.
@@ -158,18 +156,12 @@ export async function POST(request: Request) {
 
   try {
     // ---- ROUTE + RETRIEVE ----
-    const [emb, domains] = await Promise.all([
-      ai.models.embedContent({
-        model: "gemini-embedding-001",
-        contents: latest.content,
-        config: { outputDimensionality: 768 },
-      }),
+    const [queryVector, domains] = await Promise.all([
+      embed(latest.content),
       routeQuestion(latest.content),
     ]);
 
     console.log("Routed to:", domains ?? "all domains");
-
-    const queryVector = emb.embeddings?.[0]?.values ?? [];
 
     const { data: chunks, error: matchError } = await supabase.rpc(
       "match_legal_chunks_routed",
