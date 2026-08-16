@@ -23,7 +23,11 @@ for (const c of cases) {
   try {
     const res = await fetch(`${BASE}/api/ask`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: COOKIE },
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: COOKIE,
+        'x-eval-run': '1',
+      },
       body: JSON.stringify({ messages: [{ role: 'user', content: c.question }] }),
     })
 

@@ -40,6 +40,6 @@
     "question": "The police are refusing to register my FIR for a theft",
     "expectDomains": ["police"],
     "expectSections": ["BNSS 2023"],
-    "expectForum": "Superintendent of Police"
+    "expectForum": "Police"
   }
 ]

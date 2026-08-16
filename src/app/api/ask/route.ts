@@ -1,41 +1,39 @@
 import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+// Gemini stays for embeddings only, until those move local
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const SYSTEM_PROMPT = `You are LegalSaathi, helping ordinary people in India understand their legal rights.
 
 You will be given RETRIEVED SECTIONS from Indian statutes. These are the ONLY sources you may cite.
 
 ABSOLUTE RULES:
-- Cite a section number ONLY if it appears in the retrieved sections below. Never invent one.
-- If the retrieved sections do not cover the question, say so plainly: explain what you can in general terms, state clearly that you don't have the specific statute for this, and recommend a lawyer or free legal aid.
+- Cite a section number ONLY if it appears in the retrieved sections. Never invent one.
+- If the retrieved sections do not cover the question, say so plainly in "situation" and "rights", and set "forum" to the best real-world body anyway.
 - Never present general knowledge as if it came from a cited section.
 
-Structure every answer like this:
+Respond with ONLY a JSON object, no markdown fences, in exactly this shape:
 
-**What's going on**
-One or two sentences reflecting back what you understood.
+{
+  "situation": "One or two sentences reflecting back what you understood.",
+  "rights": ["2-4 bullets on what the law says. Cite inline like [CPA 2019 s.35] when a retrieved section supports the point."],
+  "steps": ["2-4 ordered actions, cheapest and least confrontational first."],
+  "forum": "The specific body they approach next",
+  "forumNote": "One line on what to do there."
+}
 
-**Your rights**
-2-4 bullets. When a retrieved section supports a point, cite it inline like [CPA 2019 s.35].
-
-**What to do next**
-2-4 ordered steps, cheapest and least confrontational first.
-
-**FORUM**
-Final line, exactly: FORUM|<forum name>|<one-line note>
-
-Style:
+Guidance:
 - Plain language. Explain any legal term immediately.
-- Consumer complaints are filed through E-Jagriti (e-jagriti.gov.in), which replaced the e-Daakhil portal in January 2025. Never refer to e-Daakhil.
-- Never state helpline numbers, portal names, or fees you are not certain of. Say "check the current portal" instead of guessing.
-- Under 250 words excluding the FORUM line.
-- Ask for the state if the answer depends on it.
-- For criminal matters, domestic violence, or large fraud, say plainly this needs a lawyer, and mention free District Legal Services Authority aid.
-- Never write your own disclaimer line; the interface already shows one.
-- Never claim to replace a lawyer.`;
+- "forum" must name the actual body in full — "District Consumer Disputes Redressal Commission" not "consumer forum"; "Superintendent of Police" not "the police". Match it to THIS problem: tenancy to a Rent Authority, employment to a Labour Court, RTI to the Public Information Officer, cyber fraud to the Cyber Crime Cell.
+- Ask for the person's state inside "situation" or "rights" when the answer depends on it.
+- For criminal matters, domestic violence, or large fraud, say plainly in "steps" that this needs a lawyer, and mention free District Legal Services Authority aid.
+- Consumer complaints are filed through E-Jagriti (e-jagriti.gov.in), which replaced e-Daakhil in January 2025. Never refer to e-Daakhil.
+- Never state helpline numbers, portal names, or fees you are not certain of.
+- Do not write your own disclaimer; the interface shows one.`;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -81,13 +79,18 @@ Examples:
 
 async function routeQuestion(question: string): Promise<string[] | null> {
   try {
-    const res = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      config: { systemInstruction: ROUTER_PROMPT, maxOutputTokens: 100 },
-      contents: [{ role: "user", parts: [{ text: question }] }],
+    const res = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      max_tokens: 100,
+      messages: [
+        { role: "system", content: ROUTER_PROMPT },
+        { role: "user", content: question },
+      ],
     });
 
-    const raw = (res.text ?? "").replace(/```json|```/g, "").trim();
+    const raw = (res.choices[0]?.message?.content ?? "")
+      .replace(/```json|```/g, "")
+      .trim();
     const parsed = JSON.parse(raw);
 
     if (!Array.isArray(parsed)) return null;
@@ -116,23 +119,27 @@ export async function POST(request: Request) {
     );
   }
 
-  // ---- RATE LIMIT: 20 questions per hour ----
-  const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  // ---- RATE LIMIT: 20 questions per hour (skipped for eval runs) ----
+  const isEval = request.headers.get("x-eval-run") === "1";
 
-  const { count } = await supabase
-    .from("messages")
-    .select("id", { count: "exact", head: true })
-    .eq("role", "user")
-    .gte("created_at", hourAgo);
+  if (!isEval) {
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
-  if ((count ?? 0) >= 20) {
-    return NextResponse.json(
-      {
-        error:
-          "You have reached the hourly limit. Please try again in a little while.",
-      },
-      { status: 429 },
-    );
+    const { count } = await supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "user")
+      .gte("created_at", hourAgo);
+
+    if ((count ?? 0) >= 20) {
+      return NextResponse.json(
+        {
+          error:
+            "You have reached the hourly limit. Please try again in a little while.",
+        },
+        { status: 429 },
+      );
+    }
   }
 
   const { messages, conversationId } = (await request.json()) as {
@@ -215,19 +222,51 @@ export async function POST(request: Request) {
       });
     }
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      config: {
-        systemInstruction: `${SYSTEM_PROMPT}\n\n=== RETRIEVED SECTIONS ===\n\n${context}`,
-        maxOutputTokens: 2000,
-      },
-      contents: messages.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      })),
+    const response = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 2000,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: `${SYSTEM_PROMPT}\n\n=== RETRIEVED SECTIONS ===\n\n${context}`,
+        },
+        ...messages.map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+      ],
     });
 
-    const text = response.text ?? "";
+    const raw = response.choices[0]?.message?.content ?? "{}";
+
+    // Convert the structured answer into the text format the UI parses
+    let text = "";
+    try {
+      const a = JSON.parse(raw) as {
+        situation?: string;
+        rights?: string[];
+        steps?: string[];
+        forum?: string;
+        forumNote?: string;
+      };
+
+      const parts: string[] = [];
+      if (a.situation) parts.push(`**What's going on**`, a.situation);
+      if (a.rights?.length)
+        parts.push(`**Your rights**`, ...a.rights.map((r) => `- ${r}`));
+      if (a.steps?.length)
+        parts.push(
+          `**What to do next**`,
+          ...a.steps.map((s, i) => `${i + 1}. ${s}`),
+        );
+      if (a.forum) parts.push(`FORUM|${a.forum}|${a.forumNote ?? ""}`);
+
+      text = parts.join("\n");
+    } catch {
+      console.error("Could not parse model JSON:", raw.slice(0, 200));
+      text = raw;
+    }
 
     if (convoId) {
       await supabase.from("messages").insert({
