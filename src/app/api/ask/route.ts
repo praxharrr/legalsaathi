@@ -67,34 +67,34 @@ Available domains:
 - rti — right to information, getting records from any government body, PIO, public authority
 - property — sale, lease, mortgage, transfer of immovable property, landlord-tenant under central law
 
-Return ONLY a JSON array of 1-3 domain strings, most relevant first. No prose, no markdown.
+Return ONLY a JSON object of the form {"domains": ["..."]} with 1-3 domain strings, most relevant first.
 
 Examples:
-"shop won't refund my broken phone" -> ["consumer"]
-"how do I get a copy of my FIR through RTI" -> ["rti","police"]
-"someone scammed me on UPI" -> ["cyber","criminal"]
-"my employer's 2-year bond, is it valid" -> ["contract"]
-"landlord kept my deposit" -> ["property","contract"]`;
+"shop won't refund my broken phone" -> {"domains":["consumer"]}
+"how do I get a copy of my FIR through RTI" -> {"domains":["rti","police"]}
+"someone scammed me on UPI" -> {"domains":["cyber","criminal"]}
+"my employer's 2-year bond, is it valid" -> {"domains":["contract"]}
+"landlord kept my deposit" -> {"domains":["property","contract"]}`;
 
 async function routeQuestion(question: string): Promise<string[] | null> {
   try {
     const res = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      max_tokens: 100,
+      model: "openai/gpt-oss-20b",
+      max_tokens: 300,
+      response_format: { type: "json_object" },
       messages: [
         { role: "system", content: ROUTER_PROMPT },
         { role: "user", content: question },
       ],
     });
 
-    const raw = (res.choices[0]?.message?.content ?? "")
-      .replace(/```json|```/g, "")
-      .trim();
-    const parsed = JSON.parse(raw);
+    const raw = (res.choices[0]?.message?.content ?? "").trim();
+    if (!raw) return null;
 
-    if (!Array.isArray(parsed)) return null;
+    const parsed = JSON.parse(raw) as { domains?: string[] };
+    if (!Array.isArray(parsed.domains)) return null;
 
-    const valid = parsed.filter((d: string) =>
+    const valid = parsed.domains.filter((d: string) =>
       (DOMAINS as readonly string[]).includes(d),
     );
 
@@ -222,7 +222,7 @@ export async function POST(request: Request) {
     }
 
     const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       max_tokens: 2000,
       response_format: { type: "json_object" },
       messages: [

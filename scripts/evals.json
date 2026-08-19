@@ -11,7 +11,7 @@
     "question": "How do I file an RTI to get a copy of my police complaint?",
     "expectDomains": ["rti"],
     "expectSections": ["RTI 2005"],
-    "expectForum": "Public Information Officer"
+    "expectForum": "Information"
   },
   {
     "id": "upi-scam",
