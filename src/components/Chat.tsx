@@ -163,21 +163,16 @@ export default function Chat({
                 </div>
               </div>
             ) : (
-              <Answer key={i} text={m.content} sources={m.sources} />
+              <Answer
+                key={i}
+                text={m.content}
+                sources={m.sources}
+                n={messages.slice(0, i + 1).filter((x) => x.role === 'assistant').length}
+              />
             )
           )}
 
-          {loading && (
-            <div className="flex gap-1.5 items-center py-2">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-ink-mute animate-bounce"
-                  style={{ animationDelay: `${i * 0.15}s` }}
-                />
-              ))}
-            </div>
-          )}
+          {loading && <Working />}
 
           {error && (
             <p className="text-[13px] text-tape border-l-2 border-tape pl-3 py-1">
@@ -218,7 +213,56 @@ export default function Chat({
   )
 }
 
-function Answer({ text, sources = [] }: { text: string; sources?: Source[] }) {
+const STAGES = [
+  'Reading your question',
+  'Routing to the relevant acts',
+  'Searching 1,565 sections',
+  'Reading the statutory text',
+  'Drafting your answer',
+]
+
+function Working() {
+  const [i, setI] = useState(0)
+
+  useEffect(() => {
+    const t = setInterval(
+      () => setI((n) => Math.min(n + 1, STAGES.length - 1)),
+      1400
+    )
+    return () => clearInterval(t)
+  }, [])
+
+  return (
+    <div className="border-l-2 border-tape/40 pl-4 py-1">
+      <p className="font-mono text-[10px] tracking-[0.11em] uppercase text-tape mb-2">
+        Working
+      </p>
+      <div className="flex flex-col gap-1">
+        {STAGES.slice(0, i + 1).map((s, k) => (
+          <p
+            key={s}
+            className={`text-[13.5px] transition-colors ${
+              k === i ? 'text-ink' : 'text-ink-mute'
+            }`}
+          >
+            {k < i ? '· ' : '› '}
+            {s}
+          </p>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Answer({
+  text,
+  sources = [],
+  n = 1,
+}: {
+  text: string
+  sources?: Source[]
+  n?: number
+}) {
   const [open, setOpen] = useState(false)
 
   const lines = text.split('\n')
@@ -226,7 +270,11 @@ function Answer({ text, sources = [] }: { text: string; sources?: Source[] }) {
   const body = lines.filter((l) => !l.startsWith('FORUM|'))
 
   return (
-    <div className="max-w-full">
+    <div className="max-w-full relative sm:pl-10">
+      <span className="hidden sm:block absolute left-0 top-1 font-mono text-[10px] tracking-[0.08em] text-tape/50 select-none">
+        § {String(n).padStart(2, '0')}
+      </span>
+
       <div className="flex flex-col gap-2">
         {body.map((line, i) => {
           const t = line.trim()
