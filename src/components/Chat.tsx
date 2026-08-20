@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import SignOutButton from '@/components/SignOutButton'
+import PaperStack from '@/components/PaperStack'
 
 type Source = {
   section: string
@@ -15,6 +16,8 @@ type Msg = {
   role: 'user' | 'assistant'
   content: string
   sources?: Source[]
+  followups?: string[]
+  at?: string
 }
 
 const STARTERS = [
@@ -79,7 +82,16 @@ export default function Chat({
       }
       setMessages([
         ...next,
-        { role: 'assistant', content: data.text, sources: data.sources },
+        {
+          role: 'assistant',
+          content: data.text,
+          sources: data.sources,
+          followups: data.followups,
+          at: new Date().toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        },
       ])
       if (data.conversationId) setConvoId(data.conversationId)
     } catch {
@@ -88,6 +100,8 @@ export default function Chat({
       setLoading(false)
     }
   }
+
+  const empty = messages.length === 0 && !loading
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -128,28 +142,34 @@ export default function Chat({
       </header>
 
       <main className="flex-1 w-full max-w-[760px] mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-40">
-        {messages.length === 0 && !loading && (
-          <div className="mt-10">
-            <p className="font-mono text-[11px] tracking-[0.13em] uppercase text-tape mb-4">
-              § Ask Saathi
-            </p>
-            <h1 className="font-serif text-4xl leading-[1.06] tracking-tight mb-3">
-              What happened?
-            </h1>
-            <p className="text-ink-soft mb-8 max-w-[440px]">
-              Describe it in your own words. No legal vocabulary needed — just tell it
-              the way you&apos;d tell a friend.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {STARTERS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => send(s)}
-                  className="text-[13px] text-ink-soft border border-rule rounded-full px-3.5 py-1.5 hover:text-tape hover:border-tape transition-colors"
-                >
-                  {s}
-                </button>
-              ))}
+        {empty && (
+          <div className="mt-6 sm:mt-10 grid lg:grid-cols-[1fr_280px] gap-8 items-start">
+            <div>
+              <p className="font-mono text-[11px] tracking-[0.13em] uppercase text-tape mb-4">
+                § Ask Saathi
+              </p>
+              <h1 className="font-serif text-4xl leading-[1.06] tracking-tight mb-3">
+                What happened?
+              </h1>
+              <p className="text-ink-soft mb-8 max-w-[440px]">
+                Describe it in your own words. No legal vocabulary needed — just tell
+                it the way you&apos;d tell a friend.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {STARTERS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => send(s)}
+                    className="text-[13px] text-ink-soft border border-rule rounded-full px-3.5 py-1.5 hover:text-tape hover:border-tape transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="hidden lg:block h-[300px] opacity-90">
+              <PaperStack />
             </div>
           </div>
         )}
@@ -167,6 +187,9 @@ export default function Chat({
                 key={i}
                 text={m.content}
                 sources={m.sources}
+                followups={m.followups}
+                at={m.at}
+                onAsk={send}
                 n={messages.slice(0, i + 1).filter((x) => x.role === 'assistant').length}
               />
             )
@@ -257,23 +280,71 @@ function Working() {
 function Answer({
   text,
   sources = [],
+  followups = [],
+  at,
+  onAsk,
   n = 1,
 }: {
   text: string
   sources?: Source[]
+  followups?: string[]
+  at?: string
+  onAsk?: (q: string) => void
   n?: number
 }) {
   const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const lines = text.split('\n')
   const forumLine = lines.find((l) => l.startsWith('FORUM|'))
   const body = lines.filter((l) => !l.startsWith('FORUM|'))
+
+  const topScore = sources.length ? Math.max(...sources.map((s) => s.similarity)) : 0
+  const weak = sources.length > 0 && topScore < 60
+  const actCount = new Set(sources.map((s) => s.section.split(' s.')[0])).size
+
+  async function copy() {
+    const plain = body
+      .map((l) => l.trim().replace(/\*\*/g, ''))
+      .filter(Boolean)
+      .join('\n')
+
+    const forum = forumLine
+      ? `\nWhere to go: ${forumLine.split('|')[1]?.trim()}`
+      : ''
+
+    const cited = sources.length
+      ? `\n\nSections cited: ${sources.map((s) => s.section).join(', ')}`
+      : ''
+
+    try {
+      await navigator.clipboard.writeText(
+        `${plain}${forum}${cited}\n\nvia LegalSaathi — legal information, not legal advice.`
+      )
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // clipboard blocked; nothing useful to do
+    }
+  }
 
   return (
     <div className="max-w-full relative sm:pl-10">
       <span className="hidden sm:block absolute left-0 top-1 font-mono text-[10px] tracking-[0.08em] text-tape/50 select-none">
         § {String(n).padStart(2, '0')}
       </span>
+
+      {weak && (
+        <div className="mb-4 border-l-2 border-brass bg-brass/[0.07] pl-3.5 py-2.5">
+          <p className="font-mono text-[9.5px] tracking-[0.11em] uppercase text-brass mb-1">
+            Weak match
+          </p>
+          <p className="text-[13.5px] leading-relaxed text-ink-soft">
+            Nothing in the corpus matched this closely. The answer below is the best
+            available — more detail about your situation would help.
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-col gap-2">
         {body.map((line, i) => {
@@ -316,8 +387,27 @@ function Answer({
         </div>
       )}
 
-      {sources.length > 0 && (
+      {followups.length > 0 && onAsk && (
         <div className="mt-5">
+          <p className="font-mono text-[9.5px] tracking-[0.11em] uppercase text-ink-mute mb-2.5">
+            Ask next
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {followups.map((f) => (
+              <button
+                key={f}
+                onClick={() => onAsk(f)}
+                className="text-[13px] text-ink-soft border border-rule rounded-full px-3.5 py-1.5 hover:text-tape hover:border-tape hover:bg-tape/[0.05] transition-colors"
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-5 flex items-center gap-4 flex-wrap">
+        {sources.length > 0 && (
           <button
             onClick={() => setOpen(!open)}
             className="font-mono text-[10px] tracking-[0.11em] uppercase text-ink-mute hover:text-tape transition-colors flex items-center gap-2"
@@ -325,30 +415,52 @@ function Answer({
             <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>›</span>
             {open ? 'Hide' : 'Show'} the {sources.length} sections this drew on
           </button>
+        )}
 
-          {open && (
-            <div className="mt-3 flex flex-col gap-2">
-              {sources.map((s, i) => (
-                <details
-                  key={i}
-                  className="group border-l-2 border-rule hover:border-tape transition-colors pl-4 py-1"
-                >
-                  <summary className="cursor-pointer list-none flex items-baseline justify-between gap-4">
-                    <span>
-                      <span className="font-mono text-[11px] text-tape">{s.section}</span>
-                      <span className="text-[13.5px] text-ink-soft ml-2">{s.title}</span>
-                    </span>
-                    <span className="font-mono text-[10px] text-ink-mute shrink-0">
-                      {s.similarity}%
-                    </span>
-                  </summary>
-                  <p className="mt-2.5 text-[13px] leading-[1.7] text-ink-soft whitespace-pre-wrap bg-raised border border-rule rounded-[2px] px-3.5 py-3">
-                    {s.text}
-                  </p>
-                </details>
-              ))}
-            </div>
-          )}
+        <button
+          onClick={copy}
+          className="font-mono text-[10px] tracking-[0.11em] uppercase text-ink-mute hover:text-tape transition-colors"
+        >
+          {copied ? 'Copied' : 'Copy answer'}
+        </button>
+
+        {at && (
+          <span className="font-mono text-[10px] tracking-[0.09em] text-ink-mute/70 ml-auto">
+            {at}
+          </span>
+        )}
+      </div>
+
+      {open && sources.length > 0 && (
+        <div className="mt-3">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-ink-mute">
+              {sources.length} sections · {actCount} act{actCount === 1 ? '' : 's'} · searched 1,565
+            </span>
+            <span className="flex-1 h-px bg-rule" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {sources.map((s, i) => (
+              <details
+                key={i}
+                className="group border-l-2 border-rule hover:border-tape transition-colors pl-4 py-1"
+              >
+                <summary className="cursor-pointer list-none flex items-baseline justify-between gap-4">
+                  <span>
+                    <span className="font-mono text-[11px] text-tape">{s.section}</span>
+                    <span className="text-[13.5px] text-ink-soft ml-2">{s.title}</span>
+                  </span>
+                  <span className="font-mono text-[10px] text-ink-mute shrink-0">
+                    {s.similarity}%
+                  </span>
+                </summary>
+                <p className="mt-2.5 text-[13px] leading-[1.7] text-ink-soft whitespace-pre-wrap bg-raised border border-rule rounded-[2px] px-3.5 py-3">
+                  {s.text}
+                </p>
+              </details>
+            ))}
+          </div>
         </div>
       )}
     </div>

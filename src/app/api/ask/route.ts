@@ -22,7 +22,8 @@ Respond with ONLY a JSON object, no markdown fences, in exactly this shape:
   "rights": ["2-4 bullets on what the law says. Cite inline like [CPA 2019 s.35] when a retrieved section supports the point."],
   "steps": ["2-4 ordered actions, cheapest and least confrontational first."],
   "forum": "The specific body they approach next",
-  "forumNote": "One line on what to do there."
+  "forumNote": "One line on what to do there.",
+  "followups": ["2-3 short questions this person would realistically ask next, written in their voice, under 9 words each"]
 }
 
 Guidance:
@@ -240,7 +241,8 @@ export async function POST(request: Request) {
     const raw = response.choices[0]?.message?.content ?? "{}";
 
     // Convert the structured answer into the text format the UI parses
-    let text = "";
+        let text = "";
+    let followups: string[] = [];
     try {
       const a = JSON.parse(raw) as {
         situation?: string;
@@ -248,7 +250,10 @@ export async function POST(request: Request) {
         steps?: string[];
         forum?: string;
         forumNote?: string;
+        followups?: string[];
       };
+
+    followups = Array.isArray(a.followups) ? a.followups.slice(0, 3) : [];
 
       const parts: string[] = [];
       if (a.situation) parts.push(`**What's going on**`, a.situation);
@@ -284,6 +289,7 @@ export async function POST(request: Request) {
       text,
       conversationId: convoId,
       sources,
+      followups,
     });
   } catch (err) {
     console.error("Ask error:", err);
