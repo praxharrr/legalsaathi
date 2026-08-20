@@ -3,8 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import SignOutButton from '@/components/SignOutButton'
-import PaperStack from '@/components/PaperStack'
-
+import WaxSeal from '@/components/WaxSeal'
 type Source = {
   section: string
   title: string
@@ -168,8 +167,8 @@ export default function Chat({
               </div>
             </div>
 
-            <div className="hidden lg:block h-[300px] opacity-90">
-              <PaperStack />
+            <div className="hidden lg:block h-[300px]">
+              <WaxSeal />
             </div>
           </div>
         )}

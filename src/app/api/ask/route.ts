@@ -23,7 +23,8 @@ Respond with ONLY a JSON object, no markdown fences, in exactly this shape:
   "steps": ["2-4 ordered actions, cheapest and least confrontational first."],
   "forum": "The specific body they approach next",
   "forumNote": "One line on what to do there.",
-  "followups": ["2-3 short questions this person would realistically ask next, written in their voice, under 9 words each"]
+  "followups": ["2-3 short questions this person would realistically ask next, written in their voice, under 9 words each"],
+  "title": "A 3-6 word file title for this case, e.g. 'Landlord withholding security deposit'"
 }
 
 Guidance:
@@ -241,8 +242,9 @@ export async function POST(request: Request) {
     const raw = response.choices[0]?.message?.content ?? "{}";
 
     // Convert the structured answer into the text format the UI parses
-        let text = "";
+    let text = "";
     let followups: string[] = [];
+    let caseTitle = "";
     try {
       const a = JSON.parse(raw) as {
         situation?: string;
@@ -251,9 +253,11 @@ export async function POST(request: Request) {
         forum?: string;
         forumNote?: string;
         followups?: string[];
+        title?: string;
       };
 
-    followups = Array.isArray(a.followups) ? a.followups.slice(0, 3) : [];
+      followups = Array.isArray(a.followups) ? a.followups.slice(0, 3) : [];
+      caseTitle = typeof a.title === "string" ? a.title.slice(0, 80) : "";
 
       const parts: string[] = [];
       if (a.situation) parts.push(`**What's going on**`, a.situation);
@@ -281,7 +285,10 @@ export async function POST(request: Request) {
       });
       await supabase
         .from("conversations")
-        .update({ updated_at: new Date().toISOString() })
+        .update({
+          updated_at: new Date().toISOString(),
+          ...(caseTitle && !conversationId ? { title: caseTitle } : {}),
+        })
         .eq("id", convoId);
     }
 
