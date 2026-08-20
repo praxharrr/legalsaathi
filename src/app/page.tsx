@@ -63,10 +63,10 @@ export default function Home() {
               Cites the actual section
             </p>
 
-            <h1 className="font-serif text-[clamp(44px,5.4vw,70px)] leading-[1.02] tracking-[-0.022em] mb-5">
-              Your landlord is<br />
-              counting on you<br />
-              <em className="italic text-tape">not knowing.</em>
+             <h1 className="font-serif text-[clamp(44px,5.4vw,70px)] leading-[1.02] tracking-[-0.022em] mb-5">
+              The law is already<br />
+              on your side.<br />
+              <em className="italic text-tape">Nobody told you.</em>
             </h1>
 
             <p className="text-[15.5px] sm:text-[16.5px] text-ink-soft w-full max-w-[452px] leading-[1.7] mb-3">
@@ -134,7 +134,7 @@ export default function Home() {
                 What Saathi can <em className="italic text-tape">actually cite.</em>
               </h2>
               <p className="text-ink-soft max-w-[540px] mt-3">
-                Two acts fully ingested, section by section, straight from India Code.
+                            Seven acts fully ingested, section by section, straight from India Code.
                 More coming — and Saathi tells you plainly when a question falls outside
                 what it has.
               </p>
