@@ -3,6 +3,7 @@
 import { useActionState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import PaperStack from '@/components/PaperStack'
 import { login, type AuthState } from '../actions'
 
 function LoginForm() {
@@ -31,21 +32,35 @@ function LoginForm() {
 
       <form action={formAction} className="flex flex-col gap-4">
         <div>
-          <label htmlFor="email" className="block font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute mb-2">
+          <label
+            htmlFor="email"
+            className="block font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute mb-2"
+          >
             Email
           </label>
           <input
-            id="email" name="email" type="email" required autoComplete="email"
+            id="email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
             className="w-full bg-raised border border-ink rounded-[3px] px-4 py-3 text-[15px] outline-none focus:shadow-[4px_5px_0_var(--color-tape)] transition-shadow"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute mb-2">
+          <label
+            htmlFor="password"
+            className="block font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute mb-2"
+          >
             Password
           </label>
           <input
-            id="password" name="password" type="password" required autoComplete="current-password"
+            id="password"
+            name="password"
+            type="password"
+            required
+            autoComplete="current-password"
             className="w-full bg-raised border border-ink rounded-[3px] px-4 py-3 text-[15px] outline-none focus:shadow-[4px_5px_0_var(--color-tape)] transition-shadow"
           />
         </div>
@@ -63,7 +78,8 @@ function LoginForm() {
         )}
 
         <button
-          type="submit" disabled={pending}
+          type="submit"
+          disabled={pending}
           className="bg-ink text-paper rounded-[2px] px-6 py-3.5 text-[15px] font-medium mt-2 hover:bg-tape transition-colors disabled:opacity-50"
         >
           {pending ? 'Signing in…' : 'Sign in'}
@@ -82,10 +98,33 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen grid place-items-center px-6 py-16">
-      <Suspense fallback={null}>
-        <LoginForm />
-      </Suspense>
+    <main className="min-h-screen grid lg:grid-cols-[1fr_1fr]">
+      <div className="grid place-items-center px-6 py-14 sm:py-16">
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
+      </div>
+
+      {/* 3D panel — desktop only */}
+      <div className="hidden lg:flex flex-col justify-center bg-ink relative overflow-hidden">
+        <div className="h-[52%] w-full">
+          <PaperStack />
+        </div>
+
+        <div className="px-14 pb-4">
+          <p className="font-mono text-[10px] tracking-[0.13em] uppercase text-brass mb-4">
+            Since you were last here
+          </p>
+          <p className="font-serif text-[30px] leading-[1.2] text-paper mb-4">
+            Seven acts.<br />
+            <em className="italic text-brass">1,565</em> sections.
+          </p>
+          <p className="text-[14.5px] leading-[1.7] text-paper/[0.6] max-w-[420px]">
+            Consumer, criminal, police procedure, cyber, contract, RTI, and property
+            — indexed section by section from India Code.
+          </p>
+        </div>
+      </div>
     </main>
   )
 }
