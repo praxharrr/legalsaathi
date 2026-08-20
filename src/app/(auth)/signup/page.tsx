@@ -11,7 +11,10 @@ export default function SignupPage() {
   return (
     <main className="min-h-screen grid lg:grid-cols-[1fr_1fr]">
       {/* form */}
-      <div className="grid place-items-center px-6 py-14 sm:py-16">
+      <div className="relative grid place-items-center px-6 py-14 sm:py-16">
+        {/* margin rule, like a ruled page */}
+        <span className="hidden sm:block absolute left-[max(2.5rem,calc(50%-15rem))] top-0 bottom-0 w-px bg-tape/20" />
+
         <div className="w-full max-w-[400px]">
           <Link href="/" className="flex items-center gap-3 mb-10">
             <span className="w-6 h-6 rounded-full border-[1.5px] border-tape" />
@@ -100,6 +103,21 @@ export default function SignupPage() {
               Sign in
             </Link>
           </p>
+        </div>
+
+        <div className="absolute bottom-8 left-0 right-0 px-6">
+          <div className="max-w-[400px] mx-auto flex items-center gap-4">
+            <span className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-ink-mute">
+              Legal information, not advice
+            </span>
+            <span className="flex-1 h-px bg-rule" />
+            <Link
+              href="/help"
+              className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-ink-mute hover:text-tape transition-colors"
+            >
+              Helplines →
+            </Link>
+          </div>
         </div>
       </div>
 

@@ -71,6 +71,30 @@ export default function PaperStack() {
       x.fillRect(80, 762, 80, 6)
       x.fillStyle = 'rgba(21,24,28,.26)'
       x.fillRect(360, 760, 180, 2)
+            // circular stamp, angled — only on the front sheet
+      if (active) {
+        x.save()
+        x.translate(455, 640)
+        x.rotate(-0.22)
+        x.strokeStyle = 'rgba(168,52,42,.55)'
+        x.lineWidth = 4
+        x.beginPath()
+        x.arc(0, 0, 74, 0, Math.PI * 2)
+        x.stroke()
+        x.lineWidth = 1.5
+        x.beginPath()
+        x.arc(0, 0, 62, 0, Math.PI * 2)
+        x.stroke()
+
+        x.fillStyle = 'rgba(168,52,42,.6)'
+        x.textAlign = 'center'
+        x.font = 'bold 15px monospace'
+        x.fillText('CERTIFIED', 0, -8)
+        x.font = 'bold 13px monospace'
+        x.fillText('TRUE COPY', 0, 12)
+        x.fillRect(-38, 24, 76, 2)
+        x.restore()
+      }
 
       const t = new THREE.CanvasTexture(c)
       t.anisotropy = 4
