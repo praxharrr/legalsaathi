@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import SignOutButton from '@/components/SignOutButton'
 import WaxSeal from '@/components/WaxSeal'
+import { downloadCasePdf } from '@/components/CasePdf'
+
 type Source = {
   section: string
   title: string
@@ -42,6 +44,7 @@ export default function Chat({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [convoId, setConvoId] = useState<string | null>(initialConvoId)
+  const [saving, setSaving] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const sentInitial = useRef(false)
 
@@ -100,6 +103,25 @@ export default function Chat({
     }
   }
 
+    async function savePdf() {
+    if (saving || messages.length === 0) return
+    setSaving(true)
+    try {
+      const firstQ = messages.find((m) => m.role === 'user')?.content ?? 'Case'
+      const title = firstQ.length > 60 ? firstQ.slice(0, 60) + '…' : firstQ
+      const filedAt = new Date().toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+      await downloadCasePdf(title, messages, filedAt)
+    } catch (err) {
+      console.error('PDF failed:', err)
+      setError('Could not generate the PDF. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
   const empty = messages.length === 0 && !loading
 
   return (
@@ -128,6 +150,15 @@ export default function Chat({
             <span className="hidden lg:inline font-mono text-[10px] tracking-[0.1em] uppercase text-ink-mute max-w-[180px] truncate">
               {email}
             </span>
+                        {messages.length > 0 && (
+              <button
+                onClick={savePdf}
+                disabled={saving}
+                className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-soft hover:text-tape transition-colors disabled:opacity-50"
+              >
+                {saving ? 'Preparing…' : 'Download'}
+              </button>
+            )}
             <SignOutButton />
           </div>
         </div>
