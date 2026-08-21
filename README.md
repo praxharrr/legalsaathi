@@ -34,10 +34,12 @@ hybrid search over pgvector
    ▼
 answer (GPT-OSS 120B, JSON mode)
    • retrieved sections are the ONLY citable source
-   • structured output, so the format can't drift
+   • structured output: rights, steps, forum, follow-up
+     questions, and a case title
    │
    ▼
-UI renders the answer + every section it drew on, expandable
+UI renders the answer, every section it drew on, suggested
+follow-ups, and a downloadable case summary
 ```
 
 ## The corpus
@@ -68,25 +70,44 @@ produce. `node scripts/run-evals.mjs` runs them against a live server.
 
 This caught things reading answers by hand did not:
 
-- **A silently failing router.** After a model swap, every question fell back to
-  searching all domains for two days. Nothing in the UI looked wrong — the
-  answers were still plausible.
+- **A silently failing router.** After a model swap it threw on every request,
+  and the catch returned null, which the system treats as "search everything."
+  It fell back for two days. Nothing in the UI looked wrong.
 - **Format drift.** The answer model dropped the machine-readable forum line
   roughly 30% of the time. Two attempts to fix it by rewording the prompt made
   it *worse* (5/6 → 3/6 → 4/6 → 3/6). Constraining the output with JSON mode
-  fixed it structurally: 6/6.
+  fixed it structurally.
 - **Retrieval crowding.** RTI sections were being squeezed out by BNSS, which
   has 16x more chunks and much closer wording to "police complaint". Fixed by
   ranking within each domain rather than globally.
+- **Prompt anchoring.** Listing example forum names made the model pick from the
+  list rather than reason — landlord deposits kept going to a consumer
+  commission. Naming the exclusion explicitly worked; listing examples didn't.
 - **A provider retiring models overnight.** Groq dropped the Llama models
   mid-project. Because the eval suite existed, migrating to GPT-OSS was a
   twenty-minute change with a measured result rather than a guess.
+
+Currently 5/6.
+
+## Honest failure
+
+Two places the app says it doesn't know rather than guessing:
+
+- **Weak retrieval.** If the best-matching section scores under 60%, the answer
+  carries a note saying nothing matched closely and asking for more detail.
+  Vague one-line questions produce weak matches, and pretending otherwise is how
+  people act on the wrong law.
+- **Missing coverage.** Tenancy deposits are the standing example, and the one
+  eval case that still fails. The corpus holds central statutes only, so the
+  model says so and points to free legal aid rather than inventing a state rent
+  act section. It picks a different forum on different runs — that's genuine
+  uncertainty, and special-casing it to pass the test would be dishonest.
 
 ## Stack
 
 Next.js 16 (App Router) · TypeScript · Tailwind v4 · Supabase (Postgres +
 pgvector + auth, RLS on every table) · Groq (GPT-OSS 20B routing, GPT-OSS 120B
-answers) · Gemini embeddings · Vercel
+answers) · Gemini embeddings · Three.js · @react-pdf/renderer · Vercel
 
 ## Running locally
 
@@ -100,17 +121,15 @@ Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
 `GROQ_API_KEY`, `GEMINI_API_KEY`. Scripts also need
 `SUPABASE_SERVICE_ROLE_KEY`.
 
-## Known limits
+## Also here
 
-- **Tenancy is state law.** Deposits, eviction, and rent control live in state
-  acts; only central statutes are indexed. This is the one eval case that still
-  fails — the model picks a different forum on different runs, which is honest
-  uncertainty rather than something worth special-casing away.
-- **Procedure isn't grounded.** Portal names, helplines, and fees come from the
-  model, not the corpus. Handled by pinning known-current facts in the prompt —
-  e.g. E-Jagriti replaced e-Daakhil in Jan 2025, which most guides online still
-  get wrong.
-- **Free-tier embedding limits** cap the corpus refresh at 1,000 sections/day.
+- **Rights library** at `/rights` — four guides plus a triage widget for people
+  who don't know which area their problem falls under
+- **Helplines** at `/help` — verified against government sources, including the
+  fact that E-Jagriti replaced the e-Daakhil portal in January 2025, which most
+  guides online still get wrong
+- **Case files** at `/dashboard` — every conversation saved, titled by the model,
+  exportable as a PDF with the cited sections attached
 
 ## Not a lawyer
 
